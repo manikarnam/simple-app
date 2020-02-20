@@ -1,10 +1,26 @@
 pipeline {
     agent any
-    tools {
-        maven 'maven3'
-    }
+    //tools {
+     //   maven 'maven3'
+   // }
+      
+    def sonarUrl = 'sonar.host.url=http://172.17.1.86:9000'
+    def mvn = tool (name: 'maven3', type: 'maven') + '/bin/mvn'
+    stage('SCM Checkout'){
+   
+	  git branch: 'master', 
+	  credentialsId: 'github', 
+	  url: 'https://github.com/javahometech/myweb'
     stages{
-        stage('Build'){
+        stage('Sonar Publish'){
+	   withCredentials([string(credentialsId: 'sonar', variable: 'sonartoken')]) {
+        def sonarToken = "sonar.login=${sonartoken}"
+        sh "${mvn} sonar:sonar -D${sonarUrl}  -D${sonarToken}"
+	        }
+      
+        }
+        
+       stage('Build'){
             steps{
                  sh script: 'mvn clean package'
             }
